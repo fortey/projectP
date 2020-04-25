@@ -128,6 +128,7 @@ class WorldScene extends Phaser.Scene {
                     this.addOtherPlayers(players[id]);
                 }
             }.bind(this));
+            this.uiScene.updatePlayerList(players);
         }.bind(this));
 
         this.socket.on('newPlayer', function (playerInfo) {
@@ -163,10 +164,16 @@ class WorldScene extends Phaser.Scene {
 
         this.socket.on('userDead', this.onUserDead.bind(this));
 
+        this.socket.on('updatePlayers', (players) => this.uiScene.updatePlayerList(players));
+        this.socket.on('skillUpdate', ({ index, skill }) => {
+            console.log('skill update ' + index);
+            //this.skills[index] = skill;
+        });
+
         //this.socket.on('skillPointerPressedComplete', this.onSkillPointerPressedComplete.bind(this));
     }
 
-    useSkillComplete({ x, y, owner, skillIndex, targets }) {
+    useSkillComplete({ x, y, owner, skillIndex, targets, damage }) {
         const skillKey = this.skills[skillIndex].key;
         //console.log('useSkillComplete ', target);
         this.otherPlayers.getChildren().forEach((player) => {
@@ -177,8 +184,8 @@ class WorldScene extends Phaser.Scene {
                 // lightning.anims.play(skillKey, true);
                 // skills[skillKey].sound.play();
 
-                const effectText = this.add.text(player.x + 16, player.y, `-${this.skills[skillIndex].damage}`, { color: "#df3508", fontSize: 16 });
-                player.hp.decrease(this.skills[skillIndex].damage);
+                const effectText = this.add.text(player.x + 16, player.y, `-${damage}`, { color: "#df3508", fontSize: 16 });
+                player.hp.decrease(damage);
                 this.time.addEvent({ delay: 1000, callback: () => effectText.destroy() });
             }
         });
@@ -201,8 +208,8 @@ class WorldScene extends Phaser.Scene {
             // lightning.anims.play(skillKey, true);
             // skills[skillKey].sound.play();
 
-            const effectText = this.add.text(player.x + 16, player.y, `-${this.skills[skillIndex].damage}`, { color: "#df3508", fontSize: 16 });
-            player.hp.decrease(this.skills[skillIndex].damage);
+            const effectText = this.add.text(player.x + 16, player.y, `-${damage}`, { color: "#df3508", fontSize: 16 });
+            player.hp.decrease(damage);
             this.time.addEvent({ delay: 1000, callback: () => effectText.destroy() });
         }
 
@@ -223,16 +230,7 @@ class WorldScene extends Phaser.Scene {
         this.skills = playerInfo.skills;
 
         this.container.hp = new HealthBar(this, this.container, playerInfo.maxHP, playerInfo.HP);
-        //this.container.add(this.player.hp.bar);
-
-        // add weapon
-        // this.weapon = this.add.sprite(10, 0, 'sword');
-        // this.weapon.setScale(0.5);
-        // this.weapon.setSize(8, 8);
-        // this.physics.world.enable(this.weapon);
-
-        // this.container.add(this.weapon);
-        // this.attacking = false;
+        this.container.add(this.add.text(-16, - 43, playerInfo.name, { color: "white", fontSize: 16 }));
 
         // update camera
         this.updateCamera();
@@ -265,7 +263,6 @@ class WorldScene extends Phaser.Scene {
         const distance = Phaser.Math.Distance.Between(this.container.x, this.container.y, pointer.worldX, pointer.worldY);
         if (this.currentSkill === undefined || distance > this.skills[this.currentSkill].distance) return;
         this.socket.emit('useSkill', { x: pointer.worldX, y: pointer.worldY, skillIndex: this.currentSkill });
-        //this.socket.emit('useSkill', { skillIndex: this.currentSkill, target: container.playerId })
     }
 
     onSkillPointerPressedComplete() {
@@ -296,10 +293,11 @@ class WorldScene extends Phaser.Scene {
         container.player = otherPlayer;
         otherPlayer.setTint(Math.random() * 0xffffff);
         container.playerId = playerInfo.playerId;
-        otherPlayer.setInteractive();
+        //otherPlayer.setInteractive();
         // otherPlayer.on('pointerdown', () => this.socket.emit('useSkill', { skillIndex: this.currentSkill, target: container.playerId }), this);
         //otherPlayer.hp = new HealthBar(this, otherPlayer.x - 16, otherPlayer.y - 28, playerInfo.maxHP, playerInfo.HP);
         container.hp = new HealthBar(this, container, playerInfo.maxHP, playerInfo.HP);
+        container.add(this.add.text(-16, - 43, playerInfo.name, { color: "white", fontSize: 16 }));
         this.otherPlayers.add(container);
     }
 

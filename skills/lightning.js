@@ -1,8 +1,8 @@
 const { Skill } = require('./skill.js');
 
 class Lightning extends Skill {
-    constructor(key, distance, area, damage) {
-        super(key, distance, area, damage);
+    constructor(key, distance, area, damage, lvlUpCallback) {
+        super(key, distance, area, damage, lvlUpCallback);
         // this.radius = radius;
         // this.damage = damage;
         // this.area = area;
@@ -21,6 +21,8 @@ class Lightning extends Skill {
                 }
             }
         }
+        // if (targetsID.length > 0)
+        this.addExp();
         return [targetsID, deadPlayersID];
     }
 }

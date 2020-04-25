@@ -8,27 +8,32 @@ const server = require('http').Server(app);
 const io = require('socket.io').listen(server);
 
 const players = {};
+let playerCounter = 0;
 
 io.on('connection', function (socket) {
   console.log('a user connected: ', socket.id);
   // create a new player and add it to our players object
+  playerCounter++;
   players[socket.id] = {
+    name: 'player ' + playerCounter,
     flipX: false,
     x: Math.floor(Math.random() * 400) + 50,
     y: Math.floor(Math.random() * 500) + 50,
     playerId: socket.id,
-    HP: 5,
-    maxHP: 5,
+    level: 1,
+    HP: 90,
+    maxHP: 90,
     skills: [
       //{ key: 'lightning', radius: 150, damage: 10 }
-      new Lightning('lightning', 200, 50, 10),
-      new Napalm('napalm', 150, 75, 15)
+      new Lightning('lightning', 200, 50, 10, (skill) => io.emit('skillUpdate', { index: 0, skill })),
+      new Napalm('napalm', 150, 75, 15, (skill) => io.emit('skillUpdate', { index: 1, skill }))
     ]
   };
   // send the players object to the new player
   socket.emit('currentPlayers', players);
   // update all other players of the new player
   socket.broadcast.emit('newPlayer', players[socket.id]);
+  io.emit('updatePlayers', players);
 
   // when a player disconnects, remove them from our players object
   socket.on('disconnect', function () {
@@ -51,6 +56,7 @@ io.on('connection', function (socket) {
   socket.on('useSkill', ({ x, y, skillIndex }) => {
     //console.log('skill used ', target, distance(players[socket.id].x, players[socket.id].y, players[target].x, players[target].y));
     const skill = players[socket.id].skills[skillIndex];
+    const damage = skill.damage;
     //if (distance(players[socket.id].x, players[socket.id].y, x, y) > skill.radius) return;
     if (skill.canUse(players[socket.id].x, players[socket.id].y, x, y)) return;
     // const targetsID = [];
@@ -66,7 +72,7 @@ io.on('connection', function (socket) {
     //   }
     // }
     const [targetsID, deadPlayersID] = skill.use(x, y, players);
-    io.emit('useSkillComplete', { x, y, owner: socket.id, skillIndex, targets: targetsID });
+    io.emit('useSkillComplete', { x, y, owner: socket.id, skillIndex, targets: targetsID, damage });
     deadPlayersID.forEach((playerId) => {
       io.emit('userDead', { playerId });
       setTimeout(() => {

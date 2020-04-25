@@ -1,8 +1,8 @@
 const { Skill } = require('./skill.js');
 
 class Napalm extends Skill {
-    constructor(key, distance, area, damage) {
-        super(key, distance, area, damage);
+    constructor(key, distance, area, damage, lvlUpCallback) {
+        super(key, distance, area, damage, lvlUpCallback);
         // this.radius = radius;
         // this.damage = damage;
         // this.area = area;
