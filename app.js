@@ -93,7 +93,9 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message });
 });
 
-server.listen(3000, () => {
+// var port_number = server.listen(process.env.PORT || 3000);
+// app.listen(port_number);
+server.listen(process.env.PORT || 3000, () => {
   console.log(`Server started on port ${3000}`);
 });
 
