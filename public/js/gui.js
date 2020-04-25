@@ -1,26 +1,33 @@
-
+import { ExpBar } from "./expBar.js";
 class UIScene extends Phaser.Scene {
     constructor() {
         super({
             key: 'UIScene'
         });
+        this.skills = [];
     }
     create() {
         const x = this.cameras.main.x;//, this.cameras.main.centerY);
-        this.menus = this.add.container();
-        this.menus.add(new MenuItem(this, 27, this.cameras.main._height - 27, 'lightning-ico', 0));
-        this.menus.add(new MenuItem(this, 79, this.cameras.main._height - 27, 'lightning-ico', 1));
+        //this.menus = this.add.container();
+        //this.menus.add(new MenuItem(this, 27, this.cameras.main._height - 27, 'lightning-ico', 0));
+        //this.menus.add(new MenuItem(this, 79, this.cameras.main._height - 32, 'lightning-ico', 1));
+        const c1 = this.add.container(27, this.cameras.main._height - 32);
+        c1.add(new MenuItem(this, 0, 0, 'lightning-ico', 0));
+        c1.bar = new ExpBar(this, c1, 5);
+        c1.levelLabel = this.add.text(-25, -25, '0', { color: "white", fontSize: 16 });
+        c1.add(c1.levelLabel);
+        this.skills.push(c1);
 
-        //this.createMenu();
-
-
-        //this.playerList.setSize(32, 36);
+        const c2 = this.add.container(79, this.cameras.main._height - 32);
+        c2.add(new MenuItem(this, 0, 0, 'lightning-ico', 1));
+        c2.bar = new ExpBar(this, c2, 5);
+        c2.levelLabel = this.add.text(-25, -25, '0', { color: "white", fontSize: 16 });
+        c2.add(c2.levelLabel);
+        this.skills.push(c2);
 
         this.events.on("GameOver", () => this.add.text(30, this.cameras.main.centerY, 'Game Over', { color: "#df3508", fontSize: 90 }), this);
     }
-    createMenu() {
 
-    }
     onKeyInput(event) {
         if (this.currentMenu && this.currentMenu.selected) {
             if (event.code === "ArrowUp") {
@@ -48,6 +55,12 @@ class UIScene extends Phaser.Scene {
             this.playerList.add(player);
         }
     }
+    updateSkill(index, skill) {
+        this.skills[index].bar.set(skill.exp, skill.maxExp);
+        this.skills[index].levelLabel.destroy();
+        this.skills[index].levelLabel = this.add.text(-25, -25, skill.level, { color: "white", fontSize: 16 });
+        this.skills[index].add(this.skills[index].levelLabel);
+    }
 }
 
 class MenuItem extends Phaser.GameObjects.Image {
@@ -56,7 +69,6 @@ class MenuItem extends Phaser.GameObjects.Image {
         super(scene, x, y, texture);
         this.setInteractive();
         this.on('pointerdown', () => {
-            console.log('pointerdown');
             scene.events.emit("Skill", skillIndex);
         });
     }

@@ -6,13 +6,15 @@ export class HealthBar {
 
         this.x = -16;
         this.y = -28;
+        this.set(value, maxHP);
+    }
+
+    set(value, maxHP) {
         this.value = value;
         this.maxHP = maxHP;
         this.p = 30 / maxHP;
 
         this.draw();
-
-        scene.add.existing(this.bar);
     }
 
     decrease(amount) {

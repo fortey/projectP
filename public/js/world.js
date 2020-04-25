@@ -99,9 +99,6 @@ class WorldScene extends Phaser.Scene {
         }
 
         this.input.on('pointerdown', (pointer) => {
-            console.log('pointerdown ' + this.input.activePointer.worldX);
-            //this.physics.moveTo(this.container, this.input.activePointer.worldX, this.input.activePointer.worldY, 80);
-            //this.socket.emit('playerMovement', { x: this.input.activePointer.worldX, y: this.input.activePointer.worldY, flipX: this.player.flipX });
             this.onSkillPointerPressed(pointer);
         }, this);
     }
@@ -112,9 +109,6 @@ class WorldScene extends Phaser.Scene {
         // first parameter is the name of the tilemap in tiled
         var tiles = this.map.addTilesetImage('tileset', 'tiles', 32, 32, 1, 2);
 
-        // creating the layers
-        // var grass = this.map.createStaticLayer('ground', tiles, 0, 0);
-        // this.obstacles = this.map.createStaticLayer('lava', tiles, 0, 0);
         var grass = this.map.createStaticLayer('Grass', tiles, 0, 0);
         this.obstacles = this.map.createStaticLayer('Obstacles', tiles, 0, 0);
         this.obstacles.setCollisionByExclusion([-1]);
@@ -166,11 +160,9 @@ class WorldScene extends Phaser.Scene {
 
         this.socket.on('updatePlayers', (players) => this.uiScene.updatePlayerList(players));
         this.socket.on('skillUpdate', ({ index, skill }) => {
-            console.log('skill update ' + index);
-            //this.skills[index] = skill;
+            this.uiScene.updateSkill(index, skill);
         });
-
-        //this.socket.on('skillPointerPressedComplete', this.onSkillPointerPressedComplete.bind(this));
+        this.socket.on('playerLevelUp', this.onPlayerLevelUp.bind(this));
     }
 
     useSkillComplete({ x, y, owner, skillIndex, targets, damage }) {
@@ -189,12 +181,7 @@ class WorldScene extends Phaser.Scene {
                 this.time.addEvent({ delay: 1000, callback: () => effectText.destroy() });
             }
         });
-        // let enemy = this.otherPlayers.getChildren().find((player) => player.playerId === target);
-        // if (!enemy && this.socket.id === target) {
-        //     enemy = this.container;
-        // }
-        // const x = enemy.x;
-        // const y = enemy.y - 150 - 16;
+
         const skillInfo = skills[skillKey];
         const skillSprite = this.add.sprite(x, y + skillInfo.pivotY, skillKey, 0);
         skillSprite.anims.play(skillKey, true);
@@ -204,9 +191,6 @@ class WorldScene extends Phaser.Scene {
             const player = this.container;
             const x = player.x;
             const y = player.y - 150 - 16;
-            // const lightning = this.add.sprite(x, y, skillKey, 0);
-            // lightning.anims.play(skillKey, true);
-            // skills[skillKey].sound.play();
 
             const effectText = this.add.text(player.x + 16, player.y, `-${damage}`, { color: "#df3508", fontSize: 16 });
             player.hp.decrease(damage);
@@ -255,7 +239,7 @@ class WorldScene extends Phaser.Scene {
         if (!this.skillArea) {
             this.skillArea = this.add.graphics();
         }
-        this.skillArea.lineStyle(1, 0xffffff);
+        this.skillArea.lineStyle(1, 0x0ab212);
         this.skillArea.strokeCircle(0, 0, this.skills[index].area);
     }
 
@@ -299,6 +283,23 @@ class WorldScene extends Phaser.Scene {
         container.hp = new HealthBar(this, container, playerInfo.maxHP, playerInfo.HP);
         container.add(this.add.text(-16, - 43, playerInfo.name, { color: "white", fontSize: 16 }));
         this.otherPlayers.add(container);
+    }
+
+    onPlayerLevelUp(playerInfo) {
+        let player;
+        this.otherPlayers.getChildren().forEach((otherPlayer) => {
+            if (otherPlayer.playerId === playerInfo.id) {
+                player = otherPlayer;
+            }
+        });
+        if (this.socket.id === playerInfo.id) {
+            player = this.container;
+        }
+        player.hp.set(playerInfo.hp, playerInfo.maxHP);
+
+        const effectText = this.add.text(-30, -58, `level up!`, { color: "green", fontSize: 20 });
+        player.add(effectText);
+        this.time.addEvent({ delay: 1000, callback: () => effectText.destroy() });
     }
 
     createAnimations() {
@@ -377,7 +378,6 @@ class WorldScene extends Phaser.Scene {
     }
 
     onUserDead({ playerId }) {
-        console.log('onUserDead', playerId);
         let playerContainer = this.otherPlayers.getChildren().find((player) => player.playerId === playerId);
         if (!playerContainer && this.socket.id === playerId) {
             playerContainer = this.container;
@@ -472,14 +472,12 @@ class WorldScene extends Phaser.Scene {
                 this.skillArea.lineStyle(1, 0xed112b);
                 this.skillArea.strokeCircle(0, 0, skill.area);
                 this.skillArea.color = 'red';
-                console.log('out ' + this.input.activePointer.worldX);
             }
             if (distance <= skill.distance && this.skillArea.color !== 'green') {
                 this.skillArea.clear();
                 this.skillArea.lineStyle(1, 0x0ab212);
                 this.skillArea.strokeCircle(0, 0, skill.area);
                 this.skillArea.color = 'green';
-                console.log('in ' + this.input.activePointer.worldX);
             }
         }
         if (this.skillArea) {

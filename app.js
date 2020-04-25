@@ -1,3 +1,4 @@
+const { Player } = require('./player/player.js');
 const { Lightning } = require('./skills/lightning.js');
 const { Napalm } = require('./skills/napalm.js');
 const express = require('express');
@@ -14,21 +15,35 @@ io.on('connection', function (socket) {
   console.log('a user connected: ', socket.id);
   // create a new player and add it to our players object
   playerCounter++;
-  players[socket.id] = {
-    name: 'player ' + playerCounter,
-    flipX: false,
-    x: Math.floor(Math.random() * 400) + 50,
-    y: Math.floor(Math.random() * 500) + 50,
-    playerId: socket.id,
-    level: 1,
-    HP: 90,
-    maxHP: 90,
-    skills: [
-      //{ key: 'lightning', radius: 150, damage: 10 }
-      new Lightning('lightning', 200, 50, 10, (skill) => io.emit('skillUpdate', { index: 0, skill })),
-      new Napalm('napalm', 150, 75, 15, (skill) => io.emit('skillUpdate', { index: 1, skill }))
-    ]
-  };
+  // players[socket.id] = {
+  //   name: 'player ' + playerCounter,
+  //   flipX: false,
+  //   x: Math.floor(Math.random() * 400) + 50,
+  //   y: Math.floor(Math.random() * 500) + 50,
+  //   playerId: socket.id,
+  //   level: 1,
+  //   HP: 90,
+  //   maxHP: 90,
+  //   skills: [
+  //     //{ key: 'lightning', radius: 150, damage: 10 }
+  //     new Lightning('lightning', 200, 50, 10, (skill) => io.emit('skillUpdate', { index: 0, skill })),
+  //     new Napalm('napalm', 150, 75, 15, (skill) => io.emit('skillUpdate', { index: 1, skill }))
+  //   ]
+  // };
+  const player = new Player('player ' + playerCounter, socket.id);
+  player.updateCallback = (player) => socket.emit('playerUpdate', player);
+  player.onLevelUp = () => {
+    io.emit('updatePlayers', players);
+    io.emit('playerLevelUp', { id: player.playerId, hp: player.HP, maxHP: player.maxHP });
+  }
+  player.skills = [
+    //{ key: 'lightning', radius: 150, damage: 10 }
+    new Lightning('lightning', 200, 50, 10, (skill) => { socket.emit('skillUpdate', { index: 0, skill }); player.addExp(); }),
+    new Napalm('napalm', 150, 75, 15, (skill) => { socket.emit('skillUpdate', { index: 1, skill }); player.addExp(); })
+  ];
+  players[socket.id] = player;
+
+
   // send the players object to the new player
   socket.emit('currentPlayers', players);
   // update all other players of the new player
@@ -41,6 +56,7 @@ io.on('connection', function (socket) {
     delete players[socket.id];
     // emit a message to all players to remove this player
     io.emit('disconnect', socket.id);
+    io.emit('updatePlayers', players);
   });
 
   // when a plaayer moves, update the player data
@@ -78,7 +94,10 @@ io.on('connection', function (socket) {
       setTimeout(() => {
         delete players[playerId];
       }, 1000);
-    })
+    });
+    if (deadPlayersID.length > 0) {
+      setTimeout(() => io.emit('updatePlayers', players), 2000);
+    }
   });
 });
 
@@ -99,10 +118,8 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message });
 });
 
-// var port_number = server.listen(process.env.PORT || 3000);
-// app.listen(port_number);
 server.listen(process.env.PORT || 3000, () => {
-  console.log(`Server started on port ${3000}`);
+  console.log(`Server started on port ${process.env.PORT || 3000}`);
 });
 
 const distance = (x1, y1, x2, y2) => {
