@@ -28,7 +28,25 @@ class Skill {
             this.maxExp += this.expForLevel;
             this.damage += Math.trunc(this.damage / 10);
         }
+    }
+
+    use(x, y, players) {
+        const targetsID = [];
+        const deadPlayersID = [];
+        for (let playerId in players) {
+            let player = players[playerId];
+            if (this.distanceBetween(player.x, player.y, x, y) <= this.area) {
+                targetsID.push(playerId);
+                player.HP = Math.max(player.HP - this.damage, 0);
+                if (player.HP === 0) {
+                    deadPlayersID.push(playerId);
+                }
+            }
+        }
+        this.endTime = Date.now() + this.cooldown;
+        if (targetsID.length > 0) this.addExp();
         this.updateCallback(this);
+        return [targetsID, deadPlayersID];
     }
 }
 

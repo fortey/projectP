@@ -7,21 +7,18 @@ class UIScene extends Phaser.Scene {
         this.skills = [];
     }
     create() {
-        const x = this.cameras.main.x;//, this.cameras.main.centerY);
-        //this.menus = this.add.container();
-        //this.menus.add(new MenuItem(this, 27, this.cameras.main._height - 27, 'lightning-ico', 0));
-        //this.menus.add(new MenuItem(this, 79, this.cameras.main._height - 32, 'lightning-ico', 1));
+
         const c1 = this.add.container(27, this.cameras.main._height - 32);
         c1.add(new MenuItem(this, 0, 0, 'lightning-ico', 0));
         c1.bar = new ExpBar(this, c1, 5);
-        c1.levelLabel = this.add.text(-25, -25, '0', { color: "white", fontSize: 16 });
+        c1.levelLabel = this.add.text(-25, -25, '0', { color: "white", fontSize: 16, fontStyle: 'bold' });
         c1.add(c1.levelLabel);
         this.skills.push(c1);
 
         const c2 = this.add.container(79, this.cameras.main._height - 32);
-        c2.add(new MenuItem(this, 0, 0, 'lightning-ico', 1));
+        c2.add(new MenuItem(this, 0, 0, 'napalm-ico', 1));
         c2.bar = new ExpBar(this, c2, 5);
-        c2.levelLabel = this.add.text(-25, -25, '0', { color: "white", fontSize: 16 });
+        c2.levelLabel = this.add.text(-25, -25, '0', { color: "white", fontSize: 16, fontStyle: 'bold' });
         c2.add(c2.levelLabel);
         this.skills.push(c2);
 
@@ -56,10 +53,26 @@ class UIScene extends Phaser.Scene {
         }
     }
     updateSkill(index, skill) {
-        this.skills[index].bar.set(skill.exp, skill.maxExp);
-        this.skills[index].levelLabel.destroy();
-        this.skills[index].levelLabel = this.add.text(-25, -25, skill.level, { color: "white", fontSize: 16 });
-        this.skills[index].add(this.skills[index].levelLabel);
+        const skillContainer = this.skills[index];
+        skillContainer.bar.set(skill.exp, skill.maxExp);
+        skillContainer.levelLabel.destroy();
+        skillContainer.levelLabel = this.add.text(-25, -25, skill.level, { color: "white", fontSize: 16, fontStyle: 'bold' });
+        skillContainer.add(skillContainer.levelLabel);
+
+        skillContainer.endTime = skill.endTime;
+        skillContainer.timeEvent = this.time.addEvent({
+            delay: 100, loop: true, callback: () => {
+                if (skillContainer.timer) skillContainer.timer.destroy();
+                if (skillContainer.endTime - Date.now() < 0) {
+                    skillContainer.timeEvent.destroy();
+                } else {
+                    skillContainer.timer = this.add.text(-12, -10, Math.ceil((skillContainer.endTime - Date.now()) / 1000), { color: 'black', fontSize: 34, fontStyle: 'bold' });
+                    skillContainer.add(skillContainer.timer);
+                }
+            }, callbackScope: this
+        });
+
+
     }
 }
 
@@ -69,6 +82,7 @@ class MenuItem extends Phaser.GameObjects.Image {
         super(scene, x, y, texture);
         this.setInteractive();
         this.on('pointerdown', () => {
+            if (scene.skills[skillIndex].endTime && scene.skills[skillIndex].endTime - Date.now() > 0) return;
             scene.events.emit("Skill", skillIndex);
         });
     }
