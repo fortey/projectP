@@ -4,7 +4,7 @@ import { UIScene } from './gui.js';
 var config = {
     type: Phaser.AUTO,
     parent: 'content',
-    width: 520,
+    width: 640,
     height: 440,
     zoom: 1,
     pixelArt: true,
