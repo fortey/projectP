@@ -9,8 +9,8 @@ class Player {
         this.HP = 90;
         this.maxHP = 90;
         this.exp = 0;
-        this.expForLevel = 10;
-        this.maxExp = 10;
+        this.expForLevel = 5;
+        this.maxExp = 5;
         //this.updateCallback = updateCallback;
     }
 

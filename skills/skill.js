@@ -6,8 +6,8 @@ class Skill {
         this.area = area;
         this.level = 0;
         this.exp = 0;
-        this.expForLevel = 5;
-        this.maxExp = 5;
+        this.expForLevel = 3;
+        this.maxExp = 3;
         this.updateCallback = updateCallback;
     }
 

@@ -15,21 +15,7 @@ io.on('connection', function (socket) {
   console.log('a user connected: ', socket.id);
   // create a new player and add it to our players object
   playerCounter++;
-  // players[socket.id] = {
-  //   name: 'player ' + playerCounter,
-  //   flipX: false,
-  //   x: Math.floor(Math.random() * 400) + 50,
-  //   y: Math.floor(Math.random() * 500) + 50,
-  //   playerId: socket.id,
-  //   level: 1,
-  //   HP: 90,
-  //   maxHP: 90,
-  //   skills: [
-  //     //{ key: 'lightning', radius: 150, damage: 10 }
-  //     new Lightning('lightning', 200, 50, 10, (skill) => io.emit('skillUpdate', { index: 0, skill })),
-  //     new Napalm('napalm', 150, 75, 15, (skill) => io.emit('skillUpdate', { index: 1, skill }))
-  //   ]
-  // };
+
   const player = new Player('player ' + playerCounter, socket.id);
   player.updateCallback = (player) => socket.emit('playerUpdate', player);
   player.onLevelUp = () => {
@@ -37,7 +23,6 @@ io.on('connection', function (socket) {
     io.emit('playerLevelUp', { id: player.playerId, hp: player.HP, maxHP: player.maxHP });
   }
   player.skills = [
-    //{ key: 'lightning', radius: 150, damage: 10 }
     new Lightning('lightning', 200, 50, 10, (skill) => { socket.emit('skillUpdate', { index: 0, skill }); player.addExp(); }),
     new Napalm('napalm', 150, 75, 15, (skill) => { socket.emit('skillUpdate', { index: 1, skill }); player.addExp(); })
   ];
@@ -70,23 +55,12 @@ io.on('connection', function (socket) {
   });
 
   socket.on('useSkill', ({ x, y, skillIndex }) => {
-    //console.log('skill used ', target, distance(players[socket.id].x, players[socket.id].y, players[target].x, players[target].y));
+    if (!players[socket.id]) return;
     const skill = players[socket.id].skills[skillIndex];
     const damage = skill.damage;
-    //if (distance(players[socket.id].x, players[socket.id].y, x, y) > skill.radius) return;
+
     if (skill.canUse(players[socket.id].x, players[socket.id].y, x, y)) return;
-    // const targetsID = [];
-    // const deadPlayersID = [];
-    // for (let playerId in players) {
-    //   let player = players[playerId];
-    //   if (distance(player.x, player.y, x, y) < skill.area) {
-    //     targetsID.push(playerId);
-    //     player.HP = Math.max(player.HP - skill.damage, 0);
-    //     if (player.HP === 0) {
-    //       deadPlayersID.push(playerId);
-    //     }
-    //   }
-    // }
+
     const [targetsID, deadPlayersID] = skill.use(x, y, players);
     io.emit('useSkillComplete', { x, y, owner: socket.id, skillIndex, targets: targetsID, damage });
     deadPlayersID.forEach((playerId) => {

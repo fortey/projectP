@@ -22,7 +22,15 @@ class UIScene extends Phaser.Scene {
         c2.add(c2.levelLabel);
         this.skills.push(c2);
 
-        this.events.on("GameOver", () => this.add.text(30, this.cameras.main.centerY, 'Game Over', { color: "#df3508", fontSize: 90 }), this);
+        this.events.on("GameOver", this.onGameOver, this);
+    }
+
+    onGameOver() {
+        this.add.text(30, this.cameras.main.centerY, 'Game Over', { color: "#df3508", fontSize: 90 });
+        this.skills.forEach((item) => {
+            item.setVisible(false);
+            item.setInteractive(false);
+        });
     }
 
     onKeyInput(event) {
