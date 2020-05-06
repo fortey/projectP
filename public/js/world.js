@@ -25,7 +25,7 @@ class BootScene extends Phaser.Scene {
         for (let key in skills) {
             this.load.spritesheet(key, skills[key].sprite, { frameWidth: skills[key].width, frameHeight: skills[key].height });
 
-            this.load.audio(key, skills[key].audio);
+            //this.load.audio(key, skills[key].audio);
             this.load.image(key + '-ico', 'assets/sprites/' + key + '-ico.png');
         }
     }
@@ -62,30 +62,12 @@ class WorldScene extends Phaser.Scene {
         // user input
         this.cursors = this.input.keyboard.createCursorKeys();
 
-        // var spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        // spaceKey.on('down', function (key, event) {
-
-        //     this.fire();
-
-        // }.bind(this));
-
-        // // where the enemies will be
-        // this.spawns = this.physics.add.group({ classType: Phaser.GameObjects.Zone });
-        // for (var i = 0; i < 30; i++) {
-        //     var x = Phaser.Math.RND.between(0, this.physics.world.bounds.width);
-        //     var y = Phaser.Math.RND.between(0, this.physics.world.bounds.height);
-        //     // parameters are x, y, width, height
-        //     this.spawns.create(x, y, 20, 20);
-        // }
-
         this.bullets = this.physics.add.group({
             classType: Phaser.GameObjects.Sprite
         });
 
         // add collider
         this.physics.add.overlap(this.bullets, this.otherPlayers, this.onDamaged, false, this);
-        //this.physics.add.overlap(this.bullets, obstacles, this.onDamaged, false, this);
-        //this.physics.add.collider(this.bullets, obstacles);
 
         // we listen for 'wake' event
         this.sys.events.on('wake', this.wake, this);
@@ -93,10 +75,10 @@ class WorldScene extends Phaser.Scene {
         this.uiScene = this.scene.get("UIScene");
         this.uiScene.events.on("Skill", this.onSkillPressed, this);
         this.skillSounds = {};
-        //this.music = this.sound.add('lightning');
-        for (let key in skills) {
-            skills[key].sound = this.sound.add(key);
-        }
+
+        // for (let key in skills) {
+        //     skills[key].sound = this.sound.add(key);
+        // }
 
         this.input.on('pointerdown', (pointer) => {
             this.onSkillPointerPressed(pointer);
@@ -185,7 +167,7 @@ class WorldScene extends Phaser.Scene {
         const skillInfo = skills[skillKey];
         const skillSprite = this.add.sprite(x, y + skillInfo.pivotY, skillKey, 0);
         skillSprite.anims.play(skillKey, true);
-        skills[skillKey].sound.play();
+        //skills[skillKey].sound.play();
 
         if (targets.indexOf(this.socket.id) !== -1) {
             const player = this.container;
