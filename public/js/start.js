@@ -5,7 +5,7 @@ var config = {
     type: Phaser.AUTO,
     parent: 'content',
     width: 1280,
-    height: 800,
+    height: 720,
     zoom: 1,
     pixelArt: true,
     physics: {
