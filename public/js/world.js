@@ -178,8 +178,9 @@ class WorldScene extends Phaser.Scene {
             player.hp.decrease(damage);
             this.time.addEvent({ delay: 1000, callback: () => effectText.destroy() });
         }
-
-        this.onSkillPointerPressedComplete();
+        if (owner === this.socket.id) {
+            this.onSkillPointerPressedComplete();
+        }
     }
 
     createPlayer(playerInfo) {
