@@ -210,6 +210,8 @@ class WorldScene extends Phaser.Scene {
         this.container.body.setCollideWorldBounds(true);
         this.physics.add.collider(this.container, this.obstacles);
         this.physics.add.overlap(this.bullets, this.container, this.onDamaged, false, this);
+
+        this.physics.add.overlap(this.potions, this.container, this.onTakePotion, false, this);
     }
 
     onSkillPressed(index) {
@@ -474,8 +476,20 @@ class WorldScene extends Phaser.Scene {
 
     createPotions() {
         this.potions = this.physics.add.group();
-        this.physics.add.overlap(this.potions, this.player, this.onTakePotion, false, this);
-        this.potions.add(this.add.sprite(200, 300, 'potion'));
+        const potion = this.add.image(200, 300, 'potion');
+        this.potions.add(potion);
+
+        // this.healthGroup = this.physics.add.staticGroup({
+        //     key: 'potion',
+        //     frameQuantity: 1,
+        //     immovable: true
+        // });
+
+        // var children = this.healthGroup.getChildren();
+        // children[0].setPosition(200, 300);
+        // this.healthGroup.refresh();
+
+        // this.physics.add.overlap(this.player, this.healthGroup, this.onTakePotion, false, this);
     }
 
     onTakePotion(player, potion) {
