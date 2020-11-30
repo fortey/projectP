@@ -28,6 +28,8 @@ class BootScene extends Phaser.Scene {
             //this.load.audio(key, skills[key].audio);
             this.load.image(key + '-ico', 'assets/sprites/' + key + '-ico.png');
         }
+
+        this.load.image('potion', 'assets/sprites/potion_red.png');
     }
 
     create() {
@@ -68,6 +70,8 @@ class WorldScene extends Phaser.Scene {
 
         // add collider
         this.physics.add.overlap(this.bullets, this.otherPlayers, this.onDamaged, false, this);
+
+        this.createPotions();
 
         // we listen for 'wake' event
         this.sys.events.on('wake', this.wake, this);
@@ -466,6 +470,16 @@ class WorldScene extends Phaser.Scene {
         if (this.skillArea) {
             this.skillArea.setPosition(this.input.activePointer.worldX, this.input.activePointer.worldY);
         }
+    }
+
+    createPotions() {
+        this.potions = this.physics.add.group();
+        this.physics.add.overlap(this.potions, this.player, this.onTakePotion, false, this);
+        this.potions.add(this.add.sprite(200, 300, 'potion'));
+    }
+
+    onTakePotion(player, potion) {
+        potion.destroy();
     }
 
 }
