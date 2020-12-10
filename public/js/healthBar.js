@@ -29,6 +29,16 @@ export class HealthBar {
         return (this.value === 0);
     }
 
+    encrease(amount) {
+        this.value += amount;
+
+        if (this.value > this.maxHP) {
+            this.value = this.maxHP;
+        }
+
+        this.draw();
+    }
+
     draw() {
         this.bar.clear();
 

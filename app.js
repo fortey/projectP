@@ -10,6 +10,7 @@ const io = require('socket.io').listen(server);
 
 const players = {};
 let playerCounter = 0;
+let potion = true;
 
 io.on('connection', function (socket) {
   console.log('a user connected: ', socket.id);
@@ -34,6 +35,7 @@ io.on('connection', function (socket) {
   // update all other players of the new player
   socket.broadcast.emit('newPlayer', players[socket.id]);
   io.emit('updatePlayers', players);
+  socket.emit('updatePotion', potion);
 
   // when a player disconnects, remove them from our players object
   socket.on('disconnect', function () {
@@ -72,6 +74,17 @@ io.on('connection', function (socket) {
     if (deadPlayersID.length > 0) {
       setTimeout(() => io.emit('updatePlayers', players), 2000);
     }
+  });
+
+  socket.on('takePotion', () => {
+    if (!players[socket.id]) return;
+    player.HP = Math.max(player.HP + 40, player.maxHP);
+    io.emit('playerTookPotion', { playerID: socket.id, amount: 40 });
+    potion = false;
+    setTimeout(() => {
+      potion = true;
+      io.emit('updatePotion', potion);
+    }, 30000);
   });
 });
 

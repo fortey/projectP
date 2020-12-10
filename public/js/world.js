@@ -10,6 +10,7 @@ class BootScene extends Phaser.Scene {
 
     preload() {
 
+        this.add.text(100, 100, 'loading...', { color: "#df3508", fontSize: 24 });
         this.load.tilemapTiledJSON('map', 'assets/ground/map.json');
         this.load.image('tiles', 'assets/ground/ground-extruded.png');
 
@@ -149,6 +150,8 @@ class WorldScene extends Phaser.Scene {
             this.uiScene.updateSkill(index, skill);
         });
         this.socket.on('playerLevelUp', this.onPlayerLevelUp.bind(this));
+        this.socket.on('playerTookPotion', ({ playerID, amount }) => this.onPlayerTakeHeal(playerID, amount));
+        this.socket.on('updatePotion', potion => this.updatePotion(potion));
     }
 
     useSkillComplete({ x, y, owner, skillIndex, targets, damage }) {
@@ -181,6 +184,8 @@ class WorldScene extends Phaser.Scene {
             const effectText = this.add.text(player.x + 16, player.y, `-${damage}`, { color: "#df3508", fontSize: 16 });
             player.hp.decrease(damage);
             this.time.addEvent({ delay: 1000, callback: () => effectText.destroy() });
+
+            //this.cameras.main.shake(50);
         }
         if (owner === this.socket.id) {
             this.onSkillPointerPressedComplete();
@@ -390,7 +395,7 @@ class WorldScene extends Phaser.Scene {
             }
         }.bind(this));
         this.physics.moveTo(this.container, players[this.socket.id].x, players[this.socket.id].y, null, 66);
-        console.log('update ', players[this.socket.id].x, players[this.socket.id].y);
+        //console.log('update ', players[this.socket.id].x, players[this.socket.id].y);
     }
     update(time, delta) {
         if (this.container && this.isAlive) {
@@ -474,10 +479,19 @@ class WorldScene extends Phaser.Scene {
         }
     }
 
+    updatePotion(potion) {
+        if (potion) {
+            const potion = this.add.image(200, 300, 'potion');
+            this.potions.add(potion);
+        }
+        else {
+            this.potions.clear(true, true);
+        }
+    }
+
     createPotions() {
         this.potions = this.physics.add.group();
-        const potion = this.add.image(200, 300, 'potion');
-        this.potions.add(potion);
+
 
         // this.healthGroup = this.physics.add.staticGroup({
         //     key: 'potion',
@@ -494,8 +508,35 @@ class WorldScene extends Phaser.Scene {
 
     onTakePotion(player, potion) {
         potion.destroy();
+        this.socket.emit('takePotion');
     }
 
+    onPlayerTakeHeal(playerID, amount) {
+        this.potions.clear(true, true);
+        this.otherPlayers.getChildren().forEach((player) => {
+            if (player.playerId == playerID) {
+                const x = player.x;
+                const y = player.y - 150 - 16;
+                // const lightning = this.add.sprite(x, y, skillKey, 0);
+                // lightning.anims.play(skillKey, true);
+                // skills[skillKey].sound.play();
+
+                const effectText = this.add.text(player.x + 16, player.y, `+${amount}`, { color: 'green', fontSize: 16 });
+                player.hp.encrease(amount);
+                this.time.addEvent({ delay: 1000, callback: () => effectText.destroy() });
+            }
+        });
+
+        if (this.socket.id == playerID) {
+            const player = this.container;
+            const x = player.x;
+            const y = player.y - 150 - 16;
+
+            const effectText = this.add.text(player.x + 16, player.y, `+${amount}`, { color: "green", fontSize: 16 });
+            player.hp.encrease(amount);
+            this.time.addEvent({ delay: 1000, callback: () => effectText.destroy() });
+        }
+    }
 }
 
 export { BootScene, WorldScene };
