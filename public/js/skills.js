@@ -1,7 +1,7 @@
 class Skill {
     constructor(name, frames, width, height) {
         this.sprite = 'assets/sprites/' + name + '.png';
-        this.audio = 'assets/audio/' + name + '.mp3';
+        this.audio = 'assets/audio/' + name + '.wav';
         this.width = width;
         this.height = height;
         this.frames = frames;

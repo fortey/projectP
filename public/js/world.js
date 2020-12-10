@@ -26,7 +26,7 @@ class BootScene extends Phaser.Scene {
         for (let key in skills) {
             this.load.spritesheet(key, skills[key].sprite, { frameWidth: skills[key].width, frameHeight: skills[key].height });
 
-            //this.load.audio(key, skills[key].audio);
+            this.load.audio(key, skills[key].audio);
             this.load.image(key + '-ico', 'assets/sprites/' + key + '-ico.png');
         }
 
@@ -81,9 +81,9 @@ class WorldScene extends Phaser.Scene {
         this.uiScene.events.on("Skill", this.onSkillPressed, this);
         this.skillSounds = {};
 
-        // for (let key in skills) {
-        //     skills[key].sound = this.sound.add(key);
-        // }
+        for (let key in skills) {
+            skills[key].sound = this.sound.add(key);
+        }
 
         this.input.on('pointerdown', (pointer) => {
             this.onSkillPointerPressed(pointer);
@@ -174,7 +174,7 @@ class WorldScene extends Phaser.Scene {
         const skillInfo = skills[skillKey];
         const skillSprite = this.add.sprite(x, y + skillInfo.pivotY, skillKey, 0);
         skillSprite.anims.play(skillKey, true);
-        //skills[skillKey].sound.play();
+        skills[skillKey].sound.play();
 
         if (targets.indexOf(this.socket.id) !== -1) {
             const player = this.container;
@@ -517,9 +517,6 @@ class WorldScene extends Phaser.Scene {
             if (player.playerId == playerID) {
                 const x = player.x;
                 const y = player.y - 150 - 16;
-                // const lightning = this.add.sprite(x, y, skillKey, 0);
-                // lightning.anims.play(skillKey, true);
-                // skills[skillKey].sound.play();
 
                 const effectText = this.add.text(player.x + 16, player.y, `+${amount}`, { color: 'green', fontSize: 16 });
                 player.hp.encrease(amount);
