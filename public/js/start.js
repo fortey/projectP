@@ -15,6 +15,10 @@ var config = {
             debug: false // set to true to view zones
         }
     },
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     scene: [
         BootScene,
         WorldScene,
